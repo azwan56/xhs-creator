@@ -32,13 +32,14 @@ jobs:
           VITE_VOLC_API_KEY: ${{ secrets.VOLC_API_KEY }}
           VITE_DOUBAO_ENDPOINT_ID: ${{ secrets.DOUBAO_ENDPOINT_ID }}
 
-      # 4. 使用密码通过 SCP 安全同步到阿里云 ECS (对应 www.vanpower.net 网页目录)
-      - name: Deploy to ECS via SCP (Password Auth)
+      # 4. 使用 SCP 增量部署到阿里云 ECS (同时兼容密钥与密码认证)
+      - name: Deploy to ECS via SCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER || 'root' }}
-          password: ${{ secrets.ECS_PASSWORD }}
+          password: ${{ secrets.ECS_PASSWORD || '' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY || '' }}
           source: "dist/*"
           target: ${{ secrets.ECS_TARGET_DIR || '/var/www/vanpower' }}
           strip_components: 1
