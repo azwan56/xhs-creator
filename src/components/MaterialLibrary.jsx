@@ -4,15 +4,11 @@ import {
   Star, 
   Sparkles, 
   Plus, 
-  Trash2, 
   Flame, 
   Lightbulb, 
   Award, 
-  Search, 
   Layers,
-  ChevronDown,
-  CheckCircle,
-  TrendingUp
+  ChevronDown
 } from 'lucide-react';
 
 export default function MaterialLibrary({
@@ -97,91 +93,91 @@ export default function MaterialLibrary({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       
-      {/* Top Header */}
-      <div className="glass-panel p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Top Header Card */}
+      <div className="glass-panel p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-white/[0.08]">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2.5">
             <BookOpen className="w-5 h-5 text-[#ff2442]" />
             四大素材入库与公域流量拆解矩阵
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            当前赛道：<span className="text-white font-semibold">【{currentNiche.name}】</span> · 持续素材投喂是私人创作大脑自我进化的唯一核心源泉
+            当前赛道：<strong className="text-slate-200">【{currentNiche.name}】</strong> · 私人素材大脑库越丰满，产出的文风与人设越精准
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="btn-xhs text-xs py-2 px-4 self-start md:self-auto"
+          className="btn-xhs text-xs py-2.5 px-5 self-start md:self-auto"
         >
           <Plus className="w-4 h-4" />
-          投喂新素材 / 记录新作品
+          <span>投喂新素材 / 录入新真迹</span>
         </button>
       </div>
 
-      {/* Sub Tabs */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto no-scrollbar">
+      {/* Sub-Tab Navigation Bar */}
+      <div className="flex items-center gap-2 border-b border-white/[0.08] pb-3 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveSubTab('benchmark')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 ${
             activeSubTab === 'benchmark'
-              ? 'bg-[#ff2442] text-white shadow-md'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-white/5'
+              ? 'bg-[#ff2442] text-white shadow-md shadow-[#ff2442]/20'
+              : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/[0.06]'
           }`}
         >
           <Flame className="w-3.5 h-3.5" />
-          模块一：对标爆款素材库 ({benchmarkPosts.length})
+          <span>对标爆款库 ({benchmarkPosts.length})</span>
         </button>
 
         <button
           onClick={() => setActiveSubTab('golden')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 ${
             activeSubTab === 'golden'
-              ? 'bg-amber-500 text-black shadow-md'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-white/5'
+              ? 'bg-amber-500 text-black shadow-md font-bold'
+              : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/[0.06]'
           }`}
         >
           <Award className="w-3.5 h-3.5" />
-          模块二：个人满意真迹库 ({goldenWorks.length})
+          <span>个人真迹风格源 ({goldenWorks.length})</span>
         </button>
 
         <button
           onClick={() => setActiveSubTab('inspiration')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 ${
             activeSubTab === 'inspiration'
-              ? 'bg-cyan-500 text-black shadow-md'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-white/5'
+              ? 'bg-cyan-500 text-black shadow-md font-bold'
+              : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/[0.06]'
           }`}
         >
           <Lightbulb className="w-3.5 h-3.5" />
-          模块三：灵感选题备忘库 ({inspirations.length})
+          <span>灵感选题备忘 ({inspirations.length})</span>
         </button>
 
         <button
           onClick={() => setActiveSubTab('frameworks')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-2 ${
             activeSubTab === 'frameworks'
-              ? 'bg-purple-500 text-white shadow-md'
-              : 'bg-slate-900 text-slate-400 hover:text-white border border-white/5'
+              ? 'bg-purple-500 text-white shadow-md font-bold'
+              : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/[0.06]'
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          模块四：AI 万能爆款框架库 (4套)
+          <span>AI 爆款万能框架 (4套)</span>
         </button>
       </div>
 
       {/* SUBTAB 1: 对标爆款库 */}
       {activeSubTab === 'benchmark' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {benchmarkPosts.map((item) => (
-            <div key={item.id} className="glass-panel p-5 flex flex-col justify-between gap-4 border border-white/10">
+            <div key={item.id} className="glass-panel p-6 flex flex-col justify-between gap-4 border border-white/[0.08]">
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[11px] px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 font-bold border border-rose-500/25">
                     🔥 获赞 {item.likes} · 收藏 {item.collects}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">
+                  <span className="text-xs text-slate-400">
                     博主：{item.author}
                   </span>
                 </div>
@@ -190,17 +186,16 @@ export default function MaterialLibrary({
                   {item.title}
                 </h3>
 
-                <p className="text-xs text-slate-300 whitespace-pre-line mt-2.5 p-3 rounded-lg bg-slate-900/80 border border-white/5 max-h-36 overflow-y-auto leading-relaxed">
+                <p className="text-xs text-slate-300 whitespace-pre-line mt-3 p-4 rounded-xl bg-slate-950/70 border border-white/[0.06] max-h-40 overflow-y-auto leading-relaxed">
                   {item.content}
                 </p>
               </div>
 
-              {/* AI Deconstruction Box */}
               {item.deconstruction && (
-                <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 flex flex-col gap-1.5 text-xs">
+                <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-500/25 flex flex-col gap-1.5 text-xs">
                   <div className="flex items-center gap-1 text-purple-300 font-bold">
                     <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                    AI 自动拆解爆款底层逻辑：
+                    <span>AI 自动拆解爆款底层逻辑：</span>
                   </div>
                   <div className="text-slate-300">
                     • <strong>开篇抓手：</strong>{item.deconstruction.hookLogic}
@@ -220,19 +215,19 @@ export default function MaterialLibrary({
 
       {/* SUBTAB 2: 个人真迹库 */}
       {activeSubTab === 'golden' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {goldenWorks.map((item) => (
-            <div key={item.id} className="glass-panel p-5 flex flex-col justify-between gap-4 border border-amber-500/30 bg-amber-950/10">
+            <div key={item.id} className="glass-panel p-6 flex flex-col justify-between gap-4 border border-amber-500/20 bg-amber-950/5">
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-1 text-amber-400">
                     {[...Array(item.stars || 5)].map((_, i) => (
                       <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
                     ))}
-                    <span className="text-xs font-bold ml-1">满意度 5.0</span>
+                    <span className="text-xs font-bold ml-1.5">满意度 5.0</span>
                   </div>
 
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono">
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-mono">
                     {item.type || '图文+口播'}
                   </span>
                 </div>
@@ -241,12 +236,12 @@ export default function MaterialLibrary({
                   {item.title}
                 </h3>
 
-                <p className="text-xs text-slate-300 whitespace-pre-line mt-2.5 p-3 rounded-lg bg-slate-900/80 border border-white/5 max-h-36 overflow-y-auto leading-relaxed">
+                <p className="text-xs text-slate-300 whitespace-pre-line mt-3 p-4 rounded-xl bg-slate-950/70 border border-white/[0.06] max-h-40 overflow-y-auto leading-relaxed">
                   {item.content}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-white/10 flex items-center justify-between text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.08] flex items-center justify-between text-xs">
                 <span className="text-amber-200/80 italic">⭐ {item.notes}</span>
                 <span className="text-emerald-400 font-bold shrink-0 ml-2">● 核心风格源</span>
               </div>
@@ -257,19 +252,19 @@ export default function MaterialLibrary({
 
       {/* SUBTAB 3: 灵感备忘库 */}
       {activeSubTab === 'inspiration' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {inspirations.map((item) => (
-            <div key={item.id} className="glass-panel p-5 flex flex-col justify-between gap-3">
+            <div key={item.id} className="glass-panel p-6 flex flex-col justify-between gap-4 border border-white/[0.08]">
               <div>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono inline-block mb-2">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 font-mono inline-block mb-3">
                   💡 备忘灵感
                 </span>
-                <h3 className="text-xs font-bold text-white leading-snug">
+                <h3 className="text-sm font-bold text-white leading-snug">
                   {item.title}
                 </h3>
-                <div className="mt-3 flex flex-col gap-1 text-xs text-slate-300">
+                <div className="mt-3 flex flex-col gap-1.5 text-xs text-slate-300">
                   {(item.points || []).map((pt, i) => (
-                    <div key={i} className="flex items-start gap-1.5">
+                    <div key={i} className="flex items-start gap-2">
                       <span className="text-cyan-400">▪</span>
                       <span>{pt}</span>
                     </div>
@@ -277,14 +272,9 @@ export default function MaterialLibrary({
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-slate-400">
                 <span>待排期创作</span>
-                <button 
-                  onClick={() => alert(`已将灵感《${item.title}》加入创作工作台`)}
-                  className="text-cyan-400 hover:underline font-bold"
-                >
-                  一键调用 ➔
-                </button>
+                <span className="text-cyan-400 font-bold">已同步至工场</span>
               </div>
             </div>
           ))}
@@ -293,9 +283,9 @@ export default function MaterialLibrary({
 
       {/* SUBTAB 4: AI 万能框架库 */}
       {activeSubTab === 'frameworks' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass-panel p-5 flex flex-col gap-3 border border-purple-500/30">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 self-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="glass-panel p-6 flex flex-col gap-3 border border-purple-500/25">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 self-start">
               💥 框架 1: 坏示范 vs 好示范对比法
             </span>
             <h4 className="text-sm font-bold text-white">【痛点误区 ➔ 坏示范拆解 ➔ 大厂高效解法 ➔ 行动清单】</h4>
@@ -304,8 +294,8 @@ export default function MaterialLibrary({
             </p>
           </div>
 
-          <div className="glass-panel p-5 flex flex-col gap-3 border border-cyan-500/30">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 self-start">
+          <div className="glass-panel p-6 flex flex-col gap-3 border border-cyan-500/25">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 self-start">
               🛠️ 框架 2: 大厂方法论降维赋能法
             </span>
             <h4 className="text-sm font-bold text-white">【管理/技术模型 ➔ 转化生活/带娃场景 ➔ 3步落地OKR ➔ 价值升华】</h4>
@@ -314,8 +304,8 @@ export default function MaterialLibrary({
             </p>
           </div>
 
-          <div className="glass-panel p-5 flex flex-col gap-3 border border-emerald-500/30">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 self-start">
+          <div className="glass-panel p-6 flex flex-col gap-3 border border-emerald-500/25">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 self-start">
               🌿 框架 3: 脆弱时刻与清醒松弛感法
             </span>
             <h4 className="text-sm font-bold text-white">【真实中年迷茫/离职 ➔ 试错反思 ➔ 戒掉完美主义 ➔ 温柔抚慰】</h4>
@@ -324,8 +314,8 @@ export default function MaterialLibrary({
             </p>
           </div>
 
-          <div className="glass-panel p-5 flex flex-col gap-3 border border-amber-500/30">
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 self-start">
+          <div className="glass-panel p-6 flex flex-col gap-3 border border-amber-500/25">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 self-start">
               ⚡ 框架 4: 保姆级神仙工具清单法
             </span>
             <h4 className="text-sm font-bold text-white">【场景痛点 ➔ ①②③④ 精选清单 ➔ 核心特色 ➔ 一键领模板】</h4>
@@ -338,8 +328,8 @@ export default function MaterialLibrary({
 
       {/* Add New Item Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0f172a] border border-white/15 rounded-2xl w-full max-w-lg p-6 flex flex-col gap-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0f172a] border border-white/15 rounded-3xl w-full max-w-lg p-7 flex flex-col gap-5 shadow-2xl">
             <h3 className="text-base font-bold text-white">
               {activeSubTab === 'benchmark' && '📥 投喂对标爆款素材（AI 将自动拆解）'}
               {activeSubTab === 'golden' && '⭐ 录入个人满意作品 / 口播稿（核心风格源）'}
@@ -347,9 +337,9 @@ export default function MaterialLibrary({
               {activeSubTab === 'frameworks' && '📥 新增素材'}
             </h3>
 
-            <div className="flex flex-col gap-3 text-xs">
+            <div className="flex flex-col gap-4 text-xs">
               <div>
-                <label className="text-slate-300 font-semibold mb-1 block">标题 / 选题：</label>
+                <label className="text-slate-300 font-semibold mb-1.5 block">标题 / 选题：</label>
                 <input
                   type="text"
                   value={newTitle}
@@ -360,9 +350,9 @@ export default function MaterialLibrary({
               </div>
 
               {activeSubTab === 'benchmark' && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-slate-300 font-semibold mb-1 block">作者昵称：</label>
+                    <label className="text-slate-300 font-semibold mb-1.5 block">作者昵称：</label>
                     <input
                       type="text"
                       value={newAuthor}
@@ -372,7 +362,7 @@ export default function MaterialLibrary({
                     />
                   </div>
                   <div>
-                    <label className="text-slate-300 font-semibold mb-1 block">获赞数据：</label>
+                    <label className="text-slate-300 font-semibold mb-1.5 block">获赞数据：</label>
                     <input
                       type="text"
                       value={newLikes}
@@ -385,7 +375,7 @@ export default function MaterialLibrary({
               )}
 
               <div>
-                <label className="text-slate-300 font-semibold mb-1 block">
+                <label className="text-slate-300 font-semibold mb-1.5 block">
                   {activeSubTab === 'inspiration' ? '核心要点与思考备忘（一行一条）：' : '全文正文 / 口播稿内容：'}
                 </label>
                 <textarea
@@ -398,10 +388,10 @@ export default function MaterialLibrary({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="btn-secondary text-xs py-1.5 px-4"
+                className="btn-secondary text-xs py-2 px-4"
               >
                 取消
               </button>
@@ -411,7 +401,7 @@ export default function MaterialLibrary({
                   else if (activeSubTab === 'golden') handleAddGolden();
                   else handleAddInspiration();
                 }}
-                className="btn-xhs text-xs py-1.5 px-5"
+                className="btn-xhs text-xs py-2 px-6"
               >
                 确认入库
               </button>
