@@ -32,15 +32,16 @@ jobs:
           VITE_VOLC_API_KEY: ${{ secrets.VOLC_API_KEY }}
           VITE_DOUBAO_ENDPOINT_ID: ${{ secrets.DOUBAO_ENDPOINT_ID }}
 
-      # 4. 使用 SCP 增量部署到阿里云 ECS (同时兼容密钥与密码认证)
-      - name: Deploy to ECS via SCP
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER || 'root' }}
-          password: ${{ secrets.ECS_PASSWORD || '' }}
-          key: ${{ secrets.SSH_PRIVATE_KEY || '' }}
-          source: "dist/*"
-          target: ${{ secrets.ECS_TARGET_DIR || '/var/www/vanpower' }}
-          strip_components: 1
-          overwrite: true
+      # 4. 安装 sshpass 部署工具
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass rsync
+
+      # 5. 使用 SSH Password + Rsync 部署到阿里云 ECS
+      - name: Deploy to ECS via Rsync with sshpass
+        run: |
+          echo "🚀 正在通过密码认证同步静态文件到阿里云 ECS..."
+          export SSHPASS="${{ secrets.ECS_PASSWORD }}"
+          sshpass -e rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password -o PubkeyAuthentication=no" \
+            dist/ ${{ secrets.ECS_USER || 'root' }}@${{ secrets.ECS_HOST }}:${{ secrets.ECS_TARGET_DIR || '/var/www/vanpower' }}
+          echo "✅ 同步部署成功！"
