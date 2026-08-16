@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  base: './',
+  base: '/xhs-creator/',
   server: {
     port: 5173,
     host: true

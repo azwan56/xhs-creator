@@ -41,4 +41,4 @@ jobs:
           SOURCE: "dist/"
           REMOTE_HOST: ${{ secrets.ECS_HOST }}
           REMOTE_USER: ${{ secrets.ECS_USER || 'root' }}
-          TARGET: ${{ secrets.ECS_TARGET_DIR || '/var/www/vanpower' }}
+          TARGET: ${{ secrets.ECS_TARGET_DIR || '/var/www/vanpower/xhs-creator' }}
