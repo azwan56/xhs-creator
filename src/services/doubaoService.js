@@ -40,7 +40,7 @@ export async function generateCreationPackage({
   creatorDNA,
   apiKey,
   endpointId,
-  modelName = 'Doubao-pro-32k',
+  modelName = 'Doubao-Seed-2.1-pro',
   onProgress
 }) {
   if (onProgress) onProgress('🧠 正在调用豆包大模型，装载创作者 DNA 与 1:1 风格模型...');
@@ -61,7 +61,7 @@ Emoji 风格：${creatorDNA.emojiDensity || '中等雅致'}
 避斥风格：${creatorDNA.avoidedStyles || '严禁吵架对立、严禁贩卖恐慌焦虑、严禁生硬黑话堆砌'}
 赛道补充指令：${niche.systemPromptSupplement || ''}
 
-请根据用户的选题要求，严格返回一个合法的 JSON 对象，格式如下：
+请根据用户的选题要求，严格返回一个合法的 JSON 对象，格式如下（不要包含 markdown 代码块外多余字符）：
 {
   "titles": ["备选爆款标题1", "备选爆款标题2", "备选爆款标题3"],
   "selectedTitle": "最佳主推爆款标题",
@@ -99,11 +99,17 @@ Emoji 风格：${creatorDNA.emojiDensity || '中等雅致'}
     "ctrScore": 92,
     "ctrEvaluation": "封面标题好奇缺口足，痛点直击目标群体",
     "cesScore": 95,
-    "cesEvaluation": "排版断句节奏舒适，结构化清单利于滑动完播",
-    "complianceCheck": "未发现违规违禁词与生硬 AI 腔，安全达标",
-    "optimizationTips": "建议在正文前 3 行保持纯痛点铺垫，避免过早抛出全部答案。"
+    "cesEvaluation": "正文节奏紧凑，图文轮播利于右滑完播",
+    "complianceCheck": "无敏感词，去 AI 腔彻底，符合小红书社区生态规范",
+    "optimizationTips": "建议发布时封面配图突出核心大字"
   }
 }`;
+
+      const userPrompt = `【创作需求】
+赛道：${niche.name}
+选题：${topic.title}
+叙事切入点/角度：${topic.angle || '从大厂高管视角降维拆解，引发强烈共鸣'}
+请开始全案生成：`;
 
       const response = await fetch(`${VOLCANO_ARK_BASE_URL}/chat/completions`, {
         method: 'POST',
@@ -115,38 +121,154 @@ Emoji 风格：${creatorDNA.emojiDensity || '中等雅致'}
           model: endpointId.trim(),
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `请针对选题《${topic.title}》（切入角度：${topic.angle || '爆款高点击'}）进行全流程深度创作。` }
+            { role: 'user', content: userPrompt }
           ],
-          temperature: 0.7,
-          response_format: { type: 'json_object' }
+          temperature: 0.7
         })
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const contentStr = data.choices[0]?.message?.content;
-        const parsed = JSON.parse(contentStr);
-        if (parsed.content && parsed.cardSlides) {
+        const json = await response.json();
+        const rawContent = json.choices?.[0]?.message?.content || '';
+        
+        // Extract JSON block from response
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
           return parsed;
         }
       }
     } catch (e) {
-      console.warn('Real API call failed or timed out, falling back to smart generation engine:', e);
+      console.warn('Real Volcano API failed, falling back to smart dynamic generator:', e);
     }
   }
 
-  // Smart Built-in High-Quality Simulated Creator Brain
-  await new Promise(resolve => setTimeout(resolve, 800));
-  if (onProgress) onProgress('🎨 正在按小红书 3:4 视觉设计框架切片封面与轮播卡片...');
-  await new Promise(resolve => setTimeout(resolve, 600));
-
-  return generateSmartMockPackage(niche, topic, creatorDNA);
+  // High-Quality Fallback Dynamic Generator
+  await new Promise(r => setTimeout(r, 600));
+  return getFallbackPackage(niche, topic, creatorDNA);
 }
 
-function generateSmartMockPackage(niche, topic, creatorDNA) {
-  const isParenting = niche.id.includes('parenting');
-  const isCareer = niche.id.includes('career') || niche.id.includes('women');
-  const isMindset = niche.id.includes('mindset');
+// Deconstruct and Recreate from Other Creator's Link / Note Content
+export async function deconstructAndRecreateFromBenchmark({
+  benchmarkInput, // Link or raw note text
+  niche,
+  creatorDNA,
+  apiKey,
+  endpointId,
+  onProgress
+}) {
+  if (onProgress) onProgress('🔍 正在深度解析对标博主笔记（提取黄金前3秒抓手、叙事模型与情绪触发点）...');
+
+  if (apiKey && endpointId && apiKey.trim() && endpointId.trim()) {
+    try {
+      const systemPrompt = `你是一位顶级小红书爆款拆解专家与内容重构操盘手。
+你现在的任务是：
+1. 深度拆解用户提供的【对标博主爆款笔记/链接】：提炼其核心痛点抓手、爆款公式、情绪激发逻辑与行文结构。
+2. 结合我们的博主人设 DNA 进行【100% 原创同化与降维重构】：
+   - 博主人设：${creatorDNA.personaName || '40+大厂女性/知性科技妈妈'}
+   - 核心文风：${creatorDNA.voiceTone || '知性从容、温柔有力量、大厂逻辑透彻、极具松弛感'}
+   - 绝对避坑黑名单：${(creatorDNA.bannedWords || []).join('、')}
+   - 绝不抄袭字句，而是吸收其底层爆款逻辑，用博主自己的大厂阅历、亲身案例和语言风格重新写出一套降维打击的全新小红书爆款！
+
+请严格返回以下 JSON 格式：
+{
+  "benchmarkDeconstruction": {
+    "hookLogic": "原笔记开篇抓手逻辑拆解（例如：用极端损失厌恶激发恐慌）",
+    "rhythm": "原笔记叙事节奏（例如：抛出痛点 ➔ 案例佐证 ➔ 3步解法 ➔ 情绪升华）",
+    "viralFormula": "提炼出的万能爆款公式",
+    "coreInsight": "这篇笔记为什么会爆的核心认知洞察"
+  },
+  "creationPackage": {
+    "titles": ["同化原创标题1", "同化原创标题2", "同化原创标题3"],
+    "selectedTitle": "最佳主推原创标题",
+    "content": "全新原创图文正文（带呼吸感断句、大厂知性文风、松弛感表达）",
+    "tags": ["#话题1", "#话题2", "#话题3", "#话题4"],
+    "oralScript": "1:1 专属口播逐字稿，带 [停顿 0.5s] 和 【重音】 标记",
+    "oralDurationSec": 70,
+    "cardSlides": [
+      {
+        "slideType": "cover",
+        "badge": "知性大厂妈妈 #精选",
+        "mainTitle": "原创封面大标题（8~14字）",
+        "highlightKeywords": "高亮词",
+        "subTitle": "痛点升华副标题",
+        "keyPoints": ["核心要点1", "核心要点2"]
+      },
+      {
+        "slideType": "content",
+        "badge": "核心解法",
+        "mainTitle": "内页大标题",
+        "highlightKeywords": "关键词",
+        "subTitle": "大厂实操逻辑",
+        "keyPoints": ["要点1", "要点2", "要点3"]
+      },
+      {
+        "slideType": "summary",
+        "badge": "写在最后",
+        "mainTitle": "总结行动指南",
+        "highlightKeywords": "行动词",
+        "subTitle": "温柔升华与互动",
+        "keyPoints": ["核心总结", "评论区互动引导"]
+      }
+    ],
+    "algorithmQA": {
+      "ctrScore": 96,
+      "ctrEvaluation": "成功吸收了原爆款的前3秒好奇抓手，结合大厂人设后权威感大幅提升",
+      "cesScore": 97,
+      "cesEvaluation": "逻辑层层递进，多页卡片设计利于完播与右滑率",
+      "complianceCheck": "无侵权风险，100% 独立原创重构，无违禁词",
+      "optimizationTips": "建议发布时封面搭配第1页大字报排版"
+    }
+  }
+}`;
+
+      const userPrompt = `请深度拆解并同化以下对标内容：\n${benchmarkInput}`;
+
+      const response = await fetch(`${VOLCANO_ARK_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey.trim()}`
+        },
+        body: JSON.stringify({
+          model: endpointId.trim(),
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.7
+        })
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        const rawContent = json.choices?.[0]?.message?.content || '';
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+      }
+    } catch (e) {
+      console.warn('Deconstruction API failed, fallback:', e);
+    }
+  }
+
+  // Fallback Deconstruction
+  await new Promise(r => setTimeout(r, 600));
+  return {
+    benchmarkDeconstruction: {
+      hookLogic: '开篇以反常识或强烈损失厌恶切入，打破读者固有认知，制造前 3 秒停顿。',
+      rhythm: '痛点直击 ➔ 拆解常见错误 ➔ 给出大厂降维解法 ➔ 价值升华与行动号召。',
+      viralFormula: '【反常识观点 + 具象化坏示范 + 3步可落地方案 + 金句收尾】',
+      coreInsight: '读者不是缺少信息，而是缺少清晰的底层逻辑与可直接套用的落地指令。'
+    },
+    creationPackage: getFallbackPackage(niche, { title: '借鉴爆款逻辑：40岁大厂女性的认知破局', angle: '反常识' }, creatorDNA)
+  };
+}
+
+function getFallbackPackage(niche, topic, creatorDNA) {
+  const isParenting = niche.id === 'parenting' || (topic.title && (topic.title.includes('孩子') || topic.title.includes('育儿')));
+  const isCareer = niche.id === 'career' || (topic.title && (topic.title.includes('大厂') || topic.title.includes('职场') || topic.title.includes('40')));
 
   let titles = [];
   let mainTitle = '';
@@ -163,9 +285,7 @@ function generateSmartMockPackage(niche, topic, creatorDNA) {
     ];
     mainTitle = topic.title || titles[0];
     content = `很多家长一听到孩子用 AI，第一反应就是“偷懒、不思考、作弊”。🙅‍♀️\n\n在大厂做了十几年技术与管理，我必须说句大实话：\n未来真正拉开孩子差距的，从来不是死记硬背的刷题量，而是「如何向 AI 提问并追问」的底层逻辑！💡\n\n📌 很多孩子的错误用法（直接抄答案）：\n“帮我写一篇关于秋天的 300 字作文。”\n➡️ 结果：空洞平庸，孩子的大脑完全没有参与。\n\n✨ 我教我女儿的【大厂启发式 AI 指令】：\n“你是一位温柔的小学语文特级教师。请不要直接给我作文，先问我 3 个关于秋天五感（视觉/气味/触觉）的问题，引导我一步步构思第一段。”\n\n你看，AI 瞬间从「代写枪手」变成了「24小时专属一对一导师」！孩子不仅学会了思考，还掌握了提问的艺术。🌟\n\n育儿的本质不是堵，而是给孩子一把通往未来的钥匙。这套打法建议先收藏，今晚就带娃试试看！❤️`;
-    
     oralScript = `如果你家孩子还在把 AI 当成抄作业的工具，停一下！[停顿 0.5s]\n\n在大厂管了十几年团队，我发现带娃和做项目一样，【底层逻辑】最重要。[停顿 0.5s]\n\n未来十年，真正拉开孩子差距的，不是刷了多少道题，而是【向 AI 精准提问并深度思考】的能力！(微笑，眼神坚定)\n\n今天分享 3 个我们家实测最管用的大厂启发式提问指令：\n第一个，【角色转化法】。别让 AI 直接写答案，让它扮演语文特级教师，反向向孩子提问……[停顿 0.5s]\n\n觉得有用记得点个赞收藏起来，下期我们聊聊怎么用大厂 OKR 治好孩子的拖延症！`;
-    
     tags = ['#科学育儿', '#AI时代带娃', '#大厂妈妈的育儿经', '#孩子学习方法', '#不内卷育儿', '#家庭教育'];
     
     cardSlides = [

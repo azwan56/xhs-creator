@@ -10,14 +10,17 @@ import {
   Mic, 
   Layers, 
   Lightbulb,
+  Link,
   ChevronDown,
   ChevronUp,
   Share2,
   Sliders,
-  Award
+  Award,
+  Flame,
+  ArrowRight
 } from 'lucide-react';
 import CardCanvasRenderer from './CardCanvasRenderer';
-import { generateCreationPackage } from '../services/doubaoService';
+import { generateCreationPackage, deconstructAndRecreateFromBenchmark } from '../services/doubaoService';
 
 export default function StudioCreation({
   currentNiche,
@@ -30,6 +33,8 @@ export default function StudioCreation({
   currentPackage,
   setCurrentPackage
 }) {
+  const [creationMode, setCreationMode] = useState('matrix'); // 'matrix' | 'benchmark_link'
+  
   const [selectedTopic, setSelectedTopic] = useState(topicMatrix[0] || {
     type: '💥 认知颠覆型',
     title: '不要再禁止孩子用 AI 了！未来10年拉开差距的不是刷题，是提问能力',
@@ -38,6 +43,9 @@ export default function StudioCreation({
   });
 
   const [customTitle, setCustomTitle] = useState('');
+  const [benchmarkInput, setBenchmarkInput] = useState('');
+  const [benchmarkAnalysis, setBenchmarkAnalysis] = useState(null);
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
   const [activeOutputTab, setActiveOutputTab] = useState('post'); // 'post' | 'oral' | 'qa'
@@ -46,13 +54,14 @@ export default function StudioCreation({
   const [copiedRich, setCopiedRich] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
 
-  // Trigger Creation Process
-  const handleGenerate = async (topicOverride) => {
+  // Trigger Creation Process from Matrix/Custom
+  const handleGenerate = async () => {
     setIsGenerating(true);
     setGenerationStep('正在装载创作者 DNA 与 1:1 风格模型...');
+    setBenchmarkAnalysis(null);
 
     try {
-      const topicToUse = topicOverride || {
+      const topicToUse = {
         title: customTitle.trim() || selectedTopic.title,
         angle: selectedTopic.angle || '爆款高点击'
       };
@@ -71,6 +80,41 @@ export default function StudioCreation({
     } catch (e) {
       console.error(e);
       alert('生成过程出错，请重试');
+    } finally {
+      setIsGenerating(false);
+      setGenerationStep('');
+    }
+  };
+
+  // Trigger Deconstruction from Benchmark Link / Text
+  const handleDeconstructBenchmark = async () => {
+    if (!benchmarkInput.trim()) {
+      alert('请先粘贴对标博主的小红书链接或文案内容');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerationStep('正在深度拆解对标笔记爆款逻辑与情绪钩子...');
+
+    try {
+      const result = await deconstructAndRecreateFromBenchmark({
+        benchmarkInput: benchmarkInput.trim(),
+        niche: currentNiche,
+        creatorDNA,
+        apiKey,
+        endpointId,
+        onProgress: (msg) => setGenerationStep(msg)
+      });
+
+      if (result.benchmarkDeconstruction) {
+        setBenchmarkAnalysis(result.benchmarkDeconstruction);
+      }
+      if (result.creationPackage) {
+        setCurrentPackage(result.creationPackage);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('拆解与重构出错，请重试');
     } finally {
       setIsGenerating(false);
       setGenerationStep('');
@@ -97,121 +141,219 @@ export default function StudioCreation({
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       
-      {/* 1. TOP ELEGANT TOPIC & INSPIRATION BAR */}
+      {/* 1. TOP ELEGANT CREATION & INSPIRATION BAR */}
       <section className="glass-panel p-6 border border-white/[0.08] relative overflow-hidden">
         
-        {/* Subtle Ambient Background Glow */}
+        {/* Ambient Glow */}
         <div className="absolute -right-20 -top-20 w-72 h-72 bg-[#ff2442]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           
-          {/* Header Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          {/* Header Row: Mode Switcher */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ff2442] animate-pulse" />
               <h2 className="text-base font-bold text-white tracking-tight">
-                灵感选题与叙事引擎
+                创作灵感与叙事引擎
               </h2>
-              <span className="text-xs text-slate-400 font-normal">
+              <span className="text-xs text-slate-400 font-normal hidden sm:inline">
                 （当前赛道：<strong className="text-slate-200">{currentNiche.name}</strong>）
               </span>
             </div>
 
-            <button
-              onClick={() => setShowFullMatrix(!showFullMatrix)}
-              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 self-start sm:self-auto transition-colors"
-            >
-              <span>{showFullMatrix ? '收起选题矩阵' : '展开精选 4 维爆款选题'}</span>
-              {showFullMatrix ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
+            {/* Mode Switcher Pills */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/90 border border-white/[0.08] self-start sm:self-auto">
+              <button
+                onClick={() => setCreationMode('matrix')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  creationMode === 'matrix'
+                    ? 'bg-[#ff2442] text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>选题矩阵创作</span>
+              </button>
+
+              <button
+                onClick={() => setCreationMode('benchmark_link')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  creationMode === 'benchmark_link'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Link className="w-3.5 h-3.5" />
+                <span>对标笔记/链接拆解同化</span>
+              </button>
+            </div>
           </div>
 
-          {/* Quick Pill Selector for 4 Angles */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-            {topicMatrix.map((item, idx) => {
-              const isSelected = selectedTopic.title === item.title;
-              return (
-                <div
-                  key={idx}
-                  onClick={() => {
-                    setSelectedTopic(item);
-                    setCustomTitle('');
-                  }}
-                  className={`p-3 rounded-xl cursor-pointer border transition-all duration-200 flex flex-col justify-between gap-1.5 ${
-                    isSelected 
-                      ? 'bg-[#ff2442]/10 border-[#ff2442] shadow-sm shadow-[#ff2442]/20' 
-                      : 'bg-slate-900/60 border-white/[0.06] hover:border-white/20 hover:bg-slate-900/90'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                      isSelected ? 'bg-[#ff2442] text-white' : 'bg-slate-800 text-slate-300'
-                    }`}>
-                      {item.type}
-                    </span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-[#ff2442]" />}
-                  </div>
-                  <h4 className="text-xs font-semibold text-white line-clamp-1 leading-snug">
-                    {item.title}
-                  </h4>
+          {/* MODE 1: 选题矩阵创作 */}
+          {creationMode === 'matrix' && (
+            <div className="flex flex-col gap-4">
+              
+              {/* Quick Pill Selector for 4 Angles */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                {topicMatrix.map((item, idx) => {
+                  const isSelected = selectedTopic.title === item.title;
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setSelectedTopic(item);
+                        setCustomTitle('');
+                      }}
+                      className={`p-3 rounded-xl cursor-pointer border transition-all duration-200 flex flex-col justify-between gap-1.5 ${
+                        isSelected 
+                          ? 'bg-[#ff2442]/10 border-[#ff2442] shadow-sm shadow-[#ff2442]/20' 
+                          : 'bg-slate-900/60 border-white/[0.06] hover:border-white/20 hover:bg-slate-900/90'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                          isSelected ? 'bg-[#ff2442] text-white' : 'bg-slate-800 text-slate-300'
+                        }`}>
+                          {item.type}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#ff2442]" />}
+                      </div>
+                      <h4 className="text-xs font-semibold text-white line-clamp-1 leading-snug">
+                        {item.title}
+                      </h4>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Input & 1-Click Action Bar */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
+                <div className="flex-1 w-full relative">
+                  <input
+                    type="text"
+                    value={customTitle}
+                    onChange={(e) => setCustomTitle(e.target.value)}
+                    placeholder={`输入自定义想法，或直接使用当前选题：《${selectedTopic.title}》`}
+                    className="glass-input w-full text-sm pl-4 pr-10 py-3"
+                  />
+                  {customTitle && (
+                    <button 
+                      onClick={() => setCustomTitle('')}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Collapsible Detailed Topic Cards */}
-          {showFullMatrix && (
-            <div className="p-4 rounded-xl bg-slate-950/60 border border-white/[0.06] flex flex-col gap-2 mt-1">
-              <span className="text-xs font-bold text-slate-300">当前选中选题深度拆解：</span>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                • <strong>核心标题：</strong>{selectedTopic.title}<br />
-                • <strong>破题切角：</strong>{selectedTopic.angle}<br />
-                • <strong>适配视觉版型：</strong>版型 {selectedTopic.suitableLayout || 'B'}（三段式结构化）
-              </p>
+                <button
+                  onClick={() => handleGenerate()}
+                  disabled={isGenerating}
+                  className="btn-xhs w-full sm:w-auto px-8 py-3 shrink-0 text-sm font-bold tracking-wide"
+                >
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>{generationStep || '豆包大模型全速创作中...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>一键生成全案 (图文+口播+3:4封面)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
             </div>
           )}
 
-          {/* Input & 1-Click Action Bar */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-            <div className="flex-1 w-full relative">
-              <input
-                type="text"
-                value={customTitle}
-                onChange={(e) => setCustomTitle(e.target.value)}
-                placeholder={`输入自定义想法，或直接使用当前选题：《${selectedTopic.title}》`}
-                className="glass-input w-full text-sm pl-4 pr-10 py-3"
-              />
-              {customTitle && (
-                <button 
-                  onClick={() => setCustomTitle('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+          {/* MODE 2: 对标博主链接/文案一键拆解与同化 */}
+          {creationMode === 'benchmark_link' && (
+            <div className="flex flex-col gap-3 p-4 rounded-2xl bg-purple-950/20 border border-purple-500/25">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-purple-400" />
+                  粘贴同行/爆款笔记链接或整段分享文案（AI 将自动拆解其爆款公式并结合您的 DNA 进行 100% 原创重构）：
+                </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  支持小红书 App 分享文本 / xhslink 链接
+                </span>
+              </div>
 
-            <button
-              onClick={() => handleGenerate()}
-              disabled={isGenerating}
-              className="btn-xhs w-full sm:w-auto px-8 py-3 shrink-0 text-sm font-bold tracking-wide"
-            >
-              {isGenerating ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>{generationStep || '豆包大模型全速创作中...'}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  <span>一键生成全套方案 (图文+口播+3:4封面)</span>
-                </>
-              )}
-            </button>
-          </div>
+              <textarea
+                value={benchmarkInput}
+                onChange={(e) => setBenchmarkInput(e.target.value)}
+                rows={3}
+                placeholder="例如：可以直接粘贴小红书 App 复制的分享文本，如：“74 别再给孩子报班了！未来10年拉开差距的是提问力 http://xhslink.com/xxxx 或整篇笔记文案...”"
+                className="glass-input w-full text-xs leading-relaxed resize-y border-purple-500/30 focus:border-purple-400"
+              />
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="text-[11px] text-slate-400">
+                  ✨ 核心原则：<strong>吸收底层逻辑与情绪抓手，捍卫博主大厂阅历与知性人设，绝不生搬硬抄</strong>
+                </div>
+
+                <button
+                  onClick={handleDeconstructBenchmark}
+                  disabled={isGenerating || !benchmarkInput.trim()}
+                  className="btn-xhs py-2.5 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20"
+                >
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>{generationStep || '深度拆解中...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>一键深度拆解并同化创作</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
       </section>
+
+      {/* 1.5. BENCHMARK DECONSTRUCTION REPORT BANNER (If Available) */}
+      {benchmarkAnalysis && (
+        <div className="glass-panel p-5 border border-purple-500/30 bg-purple-950/20 flex flex-col gap-3">
+          <div className="flex items-center justify-between border-b border-purple-500/20 pb-2">
+            <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-purple-400" />
+              对标爆款底层逻辑深度拆解报告
+            </span>
+            <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-mono">
+              已完成 DNA 人设同化
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs text-slate-200">
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <strong className="text-purple-300 block mb-1">🎯 开篇抓手 (Hook)：</strong>
+              {benchmarkAnalysis.hookLogic}
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <strong className="text-cyan-300 block mb-1">🌊 叙事节奏 (Pacing)：</strong>
+              {benchmarkAnalysis.rhythm}
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <strong className="text-amber-300 block mb-1">🔥 爆款公式 (Formula)：</strong>
+              {benchmarkAnalysis.viralFormula}
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-white/[0.06]">
+              <strong className="text-emerald-300 block mb-1">💡 核心洞察 (Insight)：</strong>
+              {benchmarkAnalysis.coreInsight}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. MAIN CREATIVE WORKSPACE (ELEGANT DUAL-PANE) */}
       {currentPackage && (
