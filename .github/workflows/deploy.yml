@@ -1,0 +1,44 @@
+name: Deploy Xiaohongshu Agent to Alibaba Cloud ECS (www.vanpower.net)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取仓库代码
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. 设置 Node.js 生产环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. 安装依赖并执行 Vite 生产打包
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_VOLC_API_KEY: ${{ secrets.VOLC_API_KEY }}
+          VITE_DOUBAO_ENDPOINT_ID: ${{ secrets.DOUBAO_ENDPOINT_ID }}
+
+      # 4. 使用 SSH/Rsync 增量同步部署到阿里云 ECS (对应 www.vanpower.net Nginx 根目录)
+      - name: Deploy to ECS via Rsync
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: "-rlgoDzvc --delete"
+          SOURCE: "dist/"
+          REMOTE_HOST: ${{ secrets.ECS_HOST }}
+          REMOTE_USER: ${{ secrets.ECS_USER }}
+          TARGET: ${{ secrets.ECS_TARGET_DIR }} # 例如 /var/www/vanpower 或 Nginx 指定目录

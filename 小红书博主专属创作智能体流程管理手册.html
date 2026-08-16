@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小红书博主专属创作智能体流程管理手册（豆包大模型 + 阿里云部署版）</title>
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-light: #fff1f2;
+      --secondary: #0284c7;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --bg-alt: #f8fafc;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.7;
+      color: var(--text);
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 60px 50px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    }
+    h1 {
+      color: var(--primary);
+      text-align: center;
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 30px;
+    }
+    .callout {
+      background: var(--primary-light);
+      border-left: 5px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 6px;
+      margin: 24px 0 32px 0;
+    }
+    .callout-title {
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    h2 {
+      color: #0f172a;
+      font-size: 20px;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 8px;
+      margin-top: 36px;
+      margin-bottom: 16px;
+    }
+    h3 {
+      color: var(--primary);
+      font-size: 16px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+    p {
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 22px;
+      margin: 12px 0;
+    }
+    li {
+      margin-bottom: 8px;
+      font-size: 14.5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13.5px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: #e2e8f0;
+      color: #0f172a;
+      font-weight: bold;
+      border-bottom: 2px solid var(--primary);
+    }
+    tr:nth-child(even) td {
+      background-color: var(--bg-alt);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #fee2e2;
+      color: #b91c1c;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .tech-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .wireframe-box {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 16px 0;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>小红书博主专属创作智能体（Agent）流程管理手册</h1>
+    <div class="subtitle">【终极进化版：风格固化 + 自我迭代 + 封面视觉框架 + 豆包大模型 + 阿里云部署】</div>
+
+    <div class="callout">
+      <div class="callout-title">💡 核心定位与技术底座</div>
+      <div>本系统是专属博主的终身进化型私人创作大脑与爆款交付工作台。系统全面接入【字节跳动火山引擎·豆包大模型（Doubao Ark API）】，并针对【阿里云基础设施（Serverless FC 3.0 与 ECS 容器化）】进行全栈生产级适配，实现风格 100% 固化、质感持续升级、3:4 视觉封面与文案一站式高效交付。</div>
+    </div>
+
+    <h2>一、 核心升级设计理念与技术选型</h2>
+    <ul>
+      <li><strong>1. 核心模型引擎：豆包大模型（Doubao Ark API）：</strong>接入火山引擎方舟平台 Doubao-pro-32k/128k 与 Doubao-lite，具备长上下文、极低延迟流式输出（SSE）、卓越的中文语感与原生小红书爆款文风。</li>
+      <li><strong>2. 部署基础设施：阿里云（Alibaba Cloud）全栈适配：</strong>支持阿里云函数计算 FC 3.0 (Serverless 极低成本免运维) 与 ECS / 轻量应用服务器 (Docker 容器化) 双模式一键交付。</li>
+      <li><strong>3. 视觉优先与封面设计框架（Visual-First Engine）：</strong>小红书 70% 点击取决于封面，80% 留存取决于多页轮播。系统建立工业级 3:4 封面设计框架规范，文案生成即自动切片渲染为 1080×1440 高清图集。</li>
+      <li><strong>4. 动态反思进化（Reflective DNA Evolution）：</strong>采用「反思比对 ➔ 增量 DNA 补丁 ➔ 记忆择优锁定 ➔ 历史版本快照」机制，杜绝模型退化，只进不退。</li>
+      <li><strong>5. 多赛道自适应模态（Multi-Niche Adaptation）：</strong>内置商业财经、认知成长、好物测评、探店攻略等差异化叙事模型、专属视觉卡片主题与打分权重。</li>
+      <li><strong>6. 小红书算法质检闭环（Algorithm Quality Gate）：</strong>内置 CTR 点击预测、CES 完播度打分与违禁词/AI腔扫描，确保产出即为高流量达标内容。</li>
+    </ul>
+
+    <h2>二、 📐 小红书爆款封面视觉设计标准框架体系</h2>
+    <p>封面决定 70% 的点击率（0.5秒视觉决策）。系统将封面设计规范化为工业级参数系统：</p>
+
+    <div class="wireframe-box">┌────────────────────────────────────────────────────────┐
+│  【3:4 黄金画布：1080px × 1440px】                     │
+│                                                        │
+│  ┌──────────────────────────────────────────────────┐  │  Top 120px: 栏目/期数徽章区
+│  │ 🏷️ [系列栏目标签 / 期数编号]                     │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                        │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ 🎯 黄金抓手主标题（8~14字，大字加粗，重点字变色） │  │  Y: 20% ~ 55%
+│  │ 💡 痛点阐述 / 价值承诺副标题                      │  │  【黄金视觉焦点区】
+│  └──────────────────────────────────────────────────┘  │
+│                                                        │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ 🖼️ 核心视觉锚点卡片（对比框/数据卡/操作界面/清单） │  │  Y: 55% ~ 80%
+│  └──────────────────────────────────────────────────┘  │  【信息增量承载区】
+│                                                        │
+│  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │  Bottom 180px: 安全避让区
+│  ░░【小红书客户端 UI 遮挡区：禁止放置核心内容与文字】░░  │ （作者头像/昵称/点赞覆盖）
+└────────────────────────────────────────────────────────┘</div>
+
+    <h3>1. 空间布局与三道安全红线</h3>
+    <ul>
+      <li><strong>标准比例与分辨率：</strong>3:4 黄金宽高比，输出 1080px × 1440px 高清分辨率。</li>
+      <li><strong>顶部安全区（Top 120px）：</strong>放置栏目胶囊徽章（Badge）、期数编号与副标。</li>
+      <li><strong>黄金焦点区（Y: 20% ~ 55%）：</strong>核心抓手大标题（8~14字，大字加粗，重点关键词高亮变色）。</li>
+      <li><strong>信息承载区（Y: 55% ~ 80%）：</strong>核心视觉锚点卡片（对比框/数据卡/操作界面/清单）。</li>
+      <li><strong style="color: var(--primary);">底部避让区（Bottom 180px - 绝对红线）：</strong>禁止放置任何核心文字或关键图表，避开小红书客户端常驻的作者头像、昵称与点赞覆盖。</li>
+      <li><strong>左右呼吸边距（Margin 60px~80px）：</strong>严格留白，杜绝文字贴边拥挤感。</li>
+    </ul>
+
+    <h3>2. 五大标准爆款排版版型规范</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 15%;">版型代码</th>
+          <th style="width: 25%;">版型名称</th>
+          <th style="width: 35%;">结构特征</th>
+          <th style="width: 25%;">核心传达目的</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>版型 A</strong></td>
+          <td><strong>大字报 / 核心观点型</strong></td>
+          <td>超大主标题（占画面 40%）+ 2~3 行要点解析</td>
+          <td>强力吸睛、观点颠覆、0.5秒直击认知</td>
+        </tr>
+        <tr>
+          <td><strong>版型 B</strong></td>
+          <td><strong>三段式 / 结构化卡片型</strong></td>
+          <td>顶栏标题 + 中间悬浮数据/工具卡片 + 底部交付</td>
+          <td>展示专业度、结构化交付方法论</td>
+        </tr>
+        <tr>
+          <td><strong>版型 C</strong></td>
+          <td><strong>红黑 / 前后对比型</strong></td>
+          <td>左右或上下双区（错误做法 ❌ vs 正确解法 ✅）</td>
+          <td>激发损失厌恶心理、痛点排雷</td>
+        </tr>
+        <tr>
+          <td><strong>版型 D</strong></td>
+          <td><strong>画中画 / 悬浮浮岛型</strong></td>
+          <td>背景是真实截图/照片（带暗角），前景悬浮高质感标题框</td>
+          <td>增强真实感、实操教程、实盘/工具展示</td>
+        </tr>
+        <tr>
+          <td><strong>版型 E</strong></td>
+          <td><strong>序号索引 / 集合清单型</strong></td>
+          <td>主标题 + ①②③④ 结构化干货要点罗列</td>
+          <td>激发收藏欲、保姆级步骤打包</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>三、 豆包模型接入与阿里云部署方案</h2>
+
+    <h3>1. 字节跳动火山引擎·豆包大模型（Ark API）规范</h3>
+    <ul>
+      <li><strong>API 协议：</strong>标准 OpenAI 兼容协议，Base URL 为 <code>https://ark.cn-beijing.volces.com/api/v3</code></li>
+      <li><strong>模型选型：</strong><span class="tech-badge">Doubao-pro-32k/128k</span>（复杂反思进化、长文拆解、深度逻辑）；<span class="tech-badge">Doubao-lite</span>（毫秒级极速生成）</li>
+      <li><strong>传输特性：</strong>支持 SSE（Server-Sent Events）流式打字机响应，生成过程零等待</li>
+    </ul>
+
+    <h3>2. 阿里云部署交付架构</h3>
+    <ul>
+      <li><strong>方案 A：阿里云函数计算 FC 3.0（Serverless 推荐）：</strong>免买服务器、免运维、按量计费，内置 <code>s.yaml</code> 配置文件，支持一键命令自动化上线。</li>
+      <li><strong>方案 B：阿里云 ECS / 轻量应用服务器（Docker 容器化）：</strong>独立主机环境，内置 <code>Dockerfile</code>、<code>docker-compose.yml</code> 与 Nginx 反代配置，支持绑定域名与 SSL。</li>
+    </ul>
+
+    <h2>四、 四大主流题材板块差异化策略</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 18%;">题材板块 (垂直赛道)</th>
+          <th style="width: 20%;">核心用户心理与指标</th>
+          <th style="width: 20%;">3:4 视觉卡片重心</th>
+          <th style="width: 22%;">文案与口播风格要求</th>
+          <th style="width: 20%;">避坑禁区 (Negative Rules)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>📊 商业财经 / 科技研报</strong></td>
+          <td>寻求增量信息、防割韭菜<br><span class="badge">收藏率 + 转发率</span></td>
+          <td>高对比数据图表、大字核心研判、深蓝/黑金商务质感</td>
+          <td>结论先行、数据支撑、逻辑严密、语速中偏快、沉稳干练</td>
+          <td>严禁废话铺垫、严禁无数据支撑的盲目看多看空、严禁说教</td>
+        </tr>
+        <tr>
+          <td><strong>🌿 个人成长 / 情感疗愈</strong></td>
+          <td>情绪共鸣、精神抚慰、缓解焦虑<br><span class="badge">评论互动率 + 点赞</span></td>
+          <td>杂志风大留白、治愈大字金句、暖杏/奶白/牛油果绿</td>
+          <td>第一人称故事代入、娓娓道来、温柔真诚、去距离感语气词</td>
+          <td>严禁居高临下讲大道理、严禁假大空鸡汤、严禁无细节宣泄</td>
+        </tr>
+        <tr>
+          <td><strong>🛍️ 好物种草 / 测评穿搭</strong></td>
+          <td>即时变美、解决痛点、决策参考<br><span class="badge">求链接/求配置 + 收藏</span></td>
+          <td>实拍图/前后对比(Before/After)、细节放大标注、红黑榜</td>
+          <td>场景痛点开场、直观使用体感描述、亲切闺蜜感碎碎念</td>
+          <td>严禁生硬说明书、严禁只夸不提缺点（需有客观小缺点增信任）</td>
+        </tr>
+        <tr>
+          <td><strong>🗺️ 美食探店 / 旅游攻略</strong></td>
+          <td>保姆级抄作业、真实避雷<br><span class="badge">超高收藏率</span></td>
+          <td>清晰路线时间轴(Day1/Day2)、价格地点标签、避坑打叉标识</td>
+          <td>极致清晰的信息索引（时间/费用/机位）、避坑Tips突出</td>
+          <td>严禁行程模糊、严禁滤镜过度与实际严重不符</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>五、 六大核心模块功能深度规划</h2>
+    <ul>
+      <li><strong>1. 四大素材入库矩阵：</strong>对标爆款拆解库 + 个人真迹标杆库 + 灵感选题库 + AI爆款框架公式库。</li>
+      <li><strong>2. 创作者 DNA 永久锁定：</strong>段落呼吸感、Emoji 密度、专属词汇、负向避坑黑名单（拒绝 AI 腔）。</li>
+      <li><strong>3. 1:1 口播深度复刻与提词器：</strong>语速节奏、气口停顿标记 <code>[停顿 0.5s]</code>、<code>【重音】</code>、全屏平滑滚动提词器。</li>
+      <li><strong>4. 动态反思进化与成长看板：</strong>DNA Patching 增量补丁、记忆择优锁（只进不退）、版本快照回滚、多维成长雷达图。</li>
+      <li><strong>5. 创作 Studio 与 3:4 渲染引擎：</strong>选题 × 4 维爆款矩阵 ➔ 小红书图文 + 1:1 口播稿 ➔ 3:4 高清图集一键打包 ➔ 算法质检打分。</li>
+      <li><strong>6. 移动端仿真与一键交付：</strong>1:1 还原小红书移动端预览，一键复制富文本/Markdown，支持 PNG 打包导出。</li>
+    </ul>
+
+    <h2>六、 整体闭环交付流程对比</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 20%;">对比维度</th>
+          <th style="width: 38%;">传统生成工具 / 简单仿写</th>
+          <th style="width: 42%;">升级版专属博主创作智能体系统</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>风格沉淀</strong></td>
+          <td>每次重新输入提示词，风格飘忽不定</td>
+          <td>个人 DNA 永久锁定，新素材自动反思迭代升级</td>
+        </tr>
+        <tr>
+          <td><strong>视觉交付</strong></td>
+          <td>仅输出文字，博主仍需花数小时做图</td>
+          <td>严格遵循 3:4 封面框架规范，自动渲染 1080×1440 高清图集（一键打包）</td>
+        </tr>
+        <tr>
+          <td><strong>口播体验</strong></td>
+          <td>机械念稿，缺乏停顿与情绪提示</td>
+          <td>1:1 复刻真实口吻，带重音/停顿标记与全屏提词器</td>
+        </tr>
+        <tr>
+          <td><strong>流量把控</strong></td>
+          <td>全凭运气，可能违规或踩中平台降权</td>
+          <td>内置小红书算法质检打分机与敏感词实时过滤</td>
+        </tr>
+        <tr>
+          <td><strong>模型与部署</strong></td>
+          <td>依赖国外 API，部署繁琐脆弱</td>
+          <td>原生支持字节火山方舟豆包大模型，一键部署阿里云 FC 3.0 / Docker</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      小红书博主专属创作智能体（Agent）流程管理手册 · 豆包大模型 + 阿里云部署版
+    </div>
+  </div>
+</body>
+</html>
