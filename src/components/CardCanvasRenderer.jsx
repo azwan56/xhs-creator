@@ -12,9 +12,9 @@ import {
   Upload,
   Wand2,
   Trash2,
-  SunMedium,
   Sliders,
-  Maximize2
+  Type,
+  LayoutTemplate
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import JSZip from 'jszip';
@@ -115,12 +115,12 @@ export const AI_PRESET_IMAGES = [
 
 // AI Filters & Beautify Presets
 export const AI_FILTERS = [
-  { id: 'none', name: '原图效果', filter: 'none' },
-  { id: 'ai-enhance', name: '✨ AI 智能自然增强', filter: 'contrast(1.12) brightness(1.05) saturate(1.15)' },
-  { id: 'warm-oat', name: '🌾 知性暖胶片', filter: 'sepia(0.2) contrast(1.06) brightness(1.02) saturate(1.1)' },
-  { id: 'tech-cool', name: '🤖 科技轻奢冷感', filter: 'contrast(1.15) brightness(0.96) hue-rotate(185deg) saturate(1.1)' },
-  { id: 'soft-glow', name: '🌿 清透松弛感', filter: 'brightness(1.08) contrast(0.96) saturate(1.08)' },
-  { id: 'monochrome', name: '🖤 黑白高级大片', filter: 'grayscale(1) contrast(1.25) brightness(0.92)' }
+  { id: 'none', name: '原图', filter: 'none' },
+  { id: 'ai-enhance', name: '✨ AI智能增强', filter: 'contrast(1.08) brightness(1.04) saturate(1.12)' },
+  { id: 'warm-oat', name: '🌾 暖调胶片', filter: 'sepia(0.18) contrast(1.05) brightness(1.02) saturate(1.08)' },
+  { id: 'tech-cool', name: '🤖 科技冷感', filter: 'contrast(1.12) brightness(0.96) hue-rotate(185deg) saturate(1.08)' },
+  { id: 'soft-glow', name: '🌿 清透柔光', filter: 'brightness(1.06) contrast(0.96) saturate(1.06)' },
+  { id: 'monochrome', name: '🖤 杂志黑白', filter: 'grayscale(1) contrast(1.2) brightness(0.95)' }
 ];
 
 export default function CardCanvasRenderer({
@@ -135,11 +135,16 @@ export default function CardCanvasRenderer({
   const [selectedThemeId, setSelectedThemeId] = useState(initialTheme);
   const [selectedLayoutId, setSelectedLayoutId] = useState(initialLayout);
   
-  // Image & Beautify States
+  // Image & Text Overlay States (Optimized to NOT obscure photos!)
   const [bgImage, setBgImage] = useState(null); // URL or base64
   const [activeFilterId, setActiveFilterId] = useState('none');
-  const [overlayMode, setOverlayMode] = useState('glass-card'); // 'glass-card' | 'bottom-gradient' | 'dark-mask' | 'none'
-  const [overlayOpacity, setOverlayOpacity] = useState(45); // 0 to 80%
+  
+  // Text Position & Style on Photo:
+  // 'bottom-strip' (Recommended: bottom 35% gradient, top 65% photo 100% visible!)
+  // 'top-sticker' (Top floating bold sticker, person below is 100% visible!)
+  // 'clean-float' (Pure clean text with 3D drop-shadow, ZERO blocking card!)
+  // 'compact-card' (Small delicate translucent badge at bottom)
+  const [textPlacement, setTextPlacement] = useState('bottom-strip'); 
   const [showImageTools, setShowImageTools] = useState(false);
 
   const [isExporting, setIsExporting] = useState(false);
@@ -165,7 +170,8 @@ export default function CardCanvasRenderer({
     const reader = new FileReader();
     reader.onload = (event) => {
       setBgImage(event.target?.result);
-      setActiveFilterId('ai-enhance'); // Auto apply AI enhancement on upload
+      setActiveFilterId('ai-enhance'); // Auto apply gentle AI enhancement on upload
+      setTextPlacement('bottom-strip'); // Default to non-obscuring bottom placement!
     };
     reader.readAsDataURL(file);
   };
@@ -182,11 +188,11 @@ export default function CardCanvasRenderer({
         <span 
           style={{ 
             color: bgImage ? '#FFE600' : theme.accent, 
-            backgroundColor: bgImage ? 'rgba(0,0,0,0.5)' : (selectedThemeId === 'oat' || selectedThemeId === 'healing' ? `${theme.accent}15` : `${theme.accent}25`),
+            backgroundColor: bgImage ? 'rgba(0,0,0,0.65)' : (selectedThemeId === 'oat' || selectedThemeId === 'healing' ? `${theme.accent}15` : `${theme.accent}25`),
             padding: '2px 8px',
             borderRadius: '6px',
             margin: '0 2px',
-            backdropFilter: bgImage ? 'blur(4px)' : 'none'
+            boxShadow: bgImage ? '0 2px 8px rgba(0,0,0,0.5)' : 'none'
           }}
         >
           {keywords}
@@ -205,7 +211,7 @@ export default function CardCanvasRenderer({
         cacheBust: true,
         pixelRatio: 3 // Ultra High resolution 1080x1440 equivalent
       });
-      saveAs(dataUrl, `小红书卡片_第${currentSlideIndex + 1}页_${Date.now()}.png`);
+      saveAs(dataUrl, `小红书封面_第${currentSlideIndex + 1}页_${Date.now()}.png`);
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 2000);
     } catch (err) {
@@ -292,12 +298,12 @@ export default function CardCanvasRenderer({
               onClick={() => setShowImageTools(!showImageTools)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                 showImageTools || bgImage
-                  ? 'bg-purple-600/20 text-purple-300 border-purple-500/40'
+                  ? 'bg-purple-600/20 text-purple-300 border-purple-500/40 shadow-sm'
                   : 'bg-slate-900/90 text-slate-300 border-white/[0.06] hover:text-white'
               }`}
             >
               <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
-              <span>{bgImage ? '🖼️ 背景图已应用' : '🖼️ AI生图/上传照片'}</span>
+              <span>{bgImage ? '🖼️ 照片设置' : '🖼️ AI生图/上传照片'}</span>
             </button>
 
           </div>
@@ -320,21 +326,21 @@ export default function CardCanvasRenderer({
               className="btn-xhs text-xs py-1.5 px-3 shadow-md"
             >
               {exportSuccess ? <Check className="w-3.5 h-3.5" /> : <Package className="w-3.5 h-3.5" />}
-              <span>{exportSuccess ? '已打包！' : `打包下载全套 (${slides.length || 1}张)`}</span>
+              <span>{exportSuccess ? '已打包！' : `打包下载 (${slides.length || 1}张)`}</span>
             </button>
           </div>
         </div>
 
-        {/* 2. COLLAPSIBLE IMAGE, AI GENERATION & BEAUTIFY SUITE */}
+        {/* 2. IMAGE & NON-OBSCURING TEXT POSITION SUITE */}
         {showImageTools && (
-          <div className="pt-3 border-t border-white/[0.06] flex flex-col gap-3.5 text-xs">
+          <div className="pt-3 border-t border-white/[0.06] flex flex-col gap-3 text-xs">
             
             {/* Row A: Presets & Upload Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-slate-300 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  1. AI 精选场景背景图：
+                  1. 选择/上传照片：
                 </span>
                 
                 {/* Upload Local Photo */}
@@ -350,7 +356,7 @@ export default function CardCanvasRenderer({
                   className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 flex items-center gap-1 text-[11px]"
                 >
                   <Upload className="w-3 h-3 text-cyan-400" />
-                  <span>上传我的照片</span>
+                  <span>上传博主照片</span>
                 </button>
 
                 {bgImage && (
@@ -362,24 +368,27 @@ export default function CardCanvasRenderer({
                     className="text-red-400 hover:text-red-300 text-[11px] flex items-center gap-1 ml-1"
                   >
                     <Trash2 className="w-3 h-3" />
-                    <span>恢复纯色</span>
+                    <span>恢复纯色卡片</span>
                   </button>
                 )}
               </div>
 
-              {/* Overlay Style Switcher */}
+              {/* Text Placement Selector (Prevents covering face!) */}
               {bgImage && (
                 <div className="flex items-center gap-1.5 text-[11px]">
-                  <span className="text-slate-400">文字叠层:</span>
+                  <span className="text-slate-400 font-semibold flex items-center gap-1">
+                    <Type className="w-3 h-3 text-amber-400" />
+                    文字避让位置:
+                  </span>
                   <select
-                    value={overlayMode}
-                    onChange={(e) => setOverlayMode(e.target.value)}
-                    className="bg-slate-900 border border-white/10 text-white rounded-md px-2 py-0.5"
+                    value={textPlacement}
+                    onChange={(e) => setTextPlacement(e.target.value)}
+                    className="bg-slate-900 border border-amber-500/30 text-amber-300 font-semibold rounded-md px-2 py-0.5"
                   >
-                    <option value="glass-card">毛玻璃悬浮卡</option>
-                    <option value="bottom-gradient">底部暗角渐变</option>
-                    <option value="dark-mask">暗色通透遮罩</option>
-                    <option value="none">无遮罩 (纯透明)</option>
+                    <option value="bottom-strip">👇 底部沉浸字幕 (推荐·面部完全露出版)</option>
+                    <option value="top-sticker">👆 顶部花字贴纸 (人物在下方)</option>
+                    <option value="clean-float">✨ 纯净无框立体字 (0遮挡)</option>
+                    <option value="compact-card">🧊 轻透磨砂微卡片</option>
                   </select>
                 </div>
               )}
@@ -390,7 +399,10 @@ export default function CardCanvasRenderer({
               {AI_PRESET_IMAGES.map((img) => (
                 <div
                   key={img.id}
-                  onClick={() => setBgImage(img.url)}
+                  onClick={() => {
+                    setBgImage(img.url);
+                    setTextPlacement('bottom-strip');
+                  }}
                   className={`group relative rounded-xl overflow-hidden cursor-pointer border transition-all aspect-[4/3] ${
                     bgImage === img.url
                       ? 'border-[#ff2442] ring-2 ring-[#ff2442]/30 scale-[1.02]'
@@ -410,7 +422,7 @@ export default function CardCanvasRenderer({
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
                 <span className="text-slate-400 shrink-0 flex items-center gap-1 font-semibold">
                   <Wand2 className="w-3 h-3 text-cyan-400" />
-                  2. AI 滤镜美化:
+                  2. AI 滤镜调色:
                 </span>
                 {AI_FILTERS.map((f) => (
                   <button
@@ -439,52 +451,51 @@ export default function CardCanvasRenderer({
         {/* The 1080x1440 Proportion Canvas */}
         <div 
           ref={cardRef}
-          className="canvas-3-4 select-none rounded-2xl flex flex-col justify-between"
+          className="canvas-3-4 select-none rounded-2xl flex flex-col justify-between relative overflow-hidden"
           style={{
             backgroundColor: bgImage ? '#000000' : theme.bg,
             color: bgImage ? '#FFFFFF' : theme.textMain,
-            padding: '36px 28px 42px 28px',
+            padding: bgImage && textPlacement === 'bottom-strip' ? '28px 24px 32px 24px' : '36px 28px 42px 28px',
             border: `1px solid ${bgImage ? 'rgba(255,255,255,0.15)' : theme.borderColor}`,
             boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.6)'
           }}
         >
-          {/* Background Image Layer with AI Filter & Dynamic Mask */}
+          {/* Background Image Layer (100% visible, sharp portrait) */}
           {bgImage && (
             <>
               <img
                 src={bgImage}
-                alt="Background"
+                alt="Background Portrait"
                 className="absolute inset-0 w-full h-full object-cover transition-all duration-300 pointer-events-none"
                 style={{ filter: currentFilter }}
               />
 
-              {/* Dynamic Overlay Mask for Text Legibility */}
-              {overlayMode === 'dark-mask' && (
+              {/* Dynamic Non-Obscuring Gradients */}
+              {textPlacement === 'bottom-strip' && (
                 <div 
-                  className="absolute inset-0 bg-black pointer-events-none"
-                  style={{ opacity: overlayOpacity / 100 }}
+                  className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 via-40% to-transparent pointer-events-none"
                 />
               )}
 
-              {overlayMode === 'bottom-gradient' && (
+              {textPlacement === 'top-sticker' && (
                 <div 
-                  className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/20 pointer-events-none"
+                  className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/40 via-35% to-transparent pointer-events-none"
                 />
               )}
 
-              {overlayMode === 'glass-card' && (
+              {textPlacement === 'clean-float' && (
                 <div 
-                  className="absolute inset-0 bg-black/30 pointer-events-none"
+                  className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none"
                 />
               )}
             </>
           )}
 
           {/* Top Layer: Safe Zone Badge (Top 120px Area) */}
-          <div className="relative z-10 flex items-center justify-between w-full mb-3">
+          <div className="relative z-10 flex items-center justify-between w-full mb-2">
             <div 
               style={{
-                backgroundColor: bgImage ? 'rgba(0,0,0,0.6)' : theme.badgeBg,
+                backgroundColor: bgImage ? 'rgba(0,0,0,0.65)' : theme.badgeBg,
                 color: bgImage ? '#FFFFFF' : theme.badgeText,
                 border: `1px solid ${bgImage ? 'rgba(255,255,255,0.3)' : `${theme.accent}40`}`,
                 fontSize: '11px',
@@ -492,6 +503,7 @@ export default function CardCanvasRenderer({
                 padding: '4px 12px',
                 borderRadius: '9999px',
                 backdropFilter: bgImage ? 'blur(8px)' : 'none',
+                boxShadow: bgImage ? '0 2px 8px rgba(0,0,0,0.4)' : 'none',
                 letterSpacing: '0.5px'
               }}
             >
@@ -499,10 +511,10 @@ export default function CardCanvasRenderer({
             </div>
 
             <div 
-              className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full font-mono"
               style={{ 
                 color: bgImage ? '#FFFFFF' : theme.textSub,
-                backgroundColor: bgImage ? 'rgba(0,0,0,0.5)' : 'transparent',
+                backgroundColor: bgImage ? 'rgba(0,0,0,0.6)' : 'transparent',
                 backdropFilter: bgImage ? 'blur(6px)' : 'none'
               }}
             >
@@ -510,25 +522,29 @@ export default function CardCanvasRenderer({
             </div>
           </div>
 
-          {/* Center Layer: Dynamic Layout Rendering (Archetypes A ~ E) */}
+          {/* Center/Bottom Layout Container: Intelligently positioned */}
           <div 
-            className={`relative z-10 flex-1 flex flex-col justify-center my-auto ${
-              bgImage && overlayMode === 'glass-card' 
-                ? 'p-5 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/20 shadow-2xl my-2' 
-                : ''
+            className={`relative z-10 flex flex-col ${
+              bgImage && textPlacement === 'bottom-strip'
+                ? 'mt-auto justify-end pb-2' // Bottom 35% strip: Portrait in top 65% is 100% visible!
+                : bgImage && textPlacement === 'top-sticker'
+                ? 'mb-auto justify-start pt-2' // Top sticker: Person in bottom is 100% visible!
+                : bgImage && textPlacement === 'compact-card'
+                ? 'my-auto p-4 rounded-2xl bg-black/40 backdrop-blur-md border border-white/20 shadow-xl'
+                : 'my-auto justify-center' // Pure text float or Graphic theme
             }`}
           >
             
             {/* Archetype A: 大字报核心观点型 */}
             {selectedLayoutId === 'A' && (
-              <div className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-3">
                 <h1 
                   style={{
-                    fontSize: '27px',
-                    lineHeight: '1.3',
+                    fontSize: bgImage && textPlacement === 'bottom-strip' ? '25px' : '27px',
+                    lineHeight: '1.25',
                     fontWeight: '900',
                     letterSpacing: '-0.5px',
-                    textShadow: bgImage ? '0 2px 12px rgba(0,0,0,0.8)' : 'none'
+                    textShadow: bgImage ? '0 2px 14px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.8)' : 'none'
                   }}
                 >
                   {renderHighlightedTitle(currentSlide.mainTitle, currentSlide.highlightKeywords)}
@@ -538,10 +554,10 @@ export default function CardCanvasRenderer({
                   <p 
                     style={{ 
                       fontSize: '13px', 
-                      color: bgImage ? '#E2E8F0' : theme.textSub, 
-                      lineHeight: '1.5', 
+                      color: bgImage ? '#F1F5F9' : theme.textSub, 
+                      lineHeight: '1.4', 
                       fontWeight: '500',
-                      textShadow: bgImage ? '0 1px 6px rgba(0,0,0,0.7)' : 'none'
+                      textShadow: bgImage ? '0 1px 8px rgba(0,0,0,0.9)' : 'none'
                     }}
                   >
                     {currentSlide.subTitle}
@@ -550,16 +566,16 @@ export default function CardCanvasRenderer({
 
                 {/* Key Points List */}
                 <div 
-                  className="mt-2 p-3.5 rounded-xl flex flex-col gap-2"
+                  className="mt-1.5 p-3 rounded-xl flex flex-col gap-1.5"
                   style={{ 
-                    backgroundColor: bgImage ? 'rgba(0,0,0,0.4)' : theme.cardBg, 
-                    border: `1px solid ${bgImage ? 'rgba(255,255,255,0.15)' : theme.borderColor}`,
+                    backgroundColor: bgImage ? 'rgba(0,0,0,0.55)' : theme.cardBg, 
+                    border: `1px solid ${bgImage ? 'rgba(255,255,255,0.18)' : theme.borderColor}`,
                     backdropFilter: bgImage ? 'blur(6px)' : 'none'
                   }}
                 >
                   {(currentSlide.keyPoints || []).map((pt, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs font-semibold leading-relaxed">
-                      <span style={{ color: bgImage ? '#38BDF8' : theme.accent }}>▍</span>
+                      <span style={{ color: bgImage ? '#FFE600' : theme.accent }}>▍</span>
                       <span>{pt}</span>
                     </div>
                   ))}
@@ -569,25 +585,25 @@ export default function CardCanvasRenderer({
 
             {/* Archetype B: 三段结构卡片型 (Default) */}
             {selectedLayoutId === 'B' && (
-              <div className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-2.5">
                 <div>
                   <h1 
                     style={{
-                      fontSize: '25px',
-                      lineHeight: '1.3',
+                      fontSize: bgImage && textPlacement === 'bottom-strip' ? '24px' : '25px',
+                      lineHeight: '1.25',
                       fontWeight: '800',
                       letterSpacing: '-0.5px',
-                      textShadow: bgImage ? '0 2px 12px rgba(0,0,0,0.8)' : 'none'
+                      textShadow: bgImage ? '0 2px 14px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.8)' : 'none'
                     }}
                   >
                     {renderHighlightedTitle(currentSlide.mainTitle, currentSlide.highlightKeywords)}
                   </h1>
                   {currentSlide.subTitle && (
                     <p 
-                      className="mt-1.5 text-xs font-medium" 
+                      className="mt-1 text-xs font-medium" 
                       style={{ 
-                        color: bgImage ? '#E2E8F0' : theme.textSub,
-                        textShadow: bgImage ? '0 1px 6px rgba(0,0,0,0.7)' : 'none'
+                        color: bgImage ? '#F1F5F9' : theme.textSub,
+                        textShadow: bgImage ? '0 1px 8px rgba(0,0,0,0.9)' : 'none'
                       }}
                     >
                       💡 {currentSlide.subTitle}
@@ -595,26 +611,22 @@ export default function CardCanvasRenderer({
                   )}
                 </div>
 
-                {/* Middle Floating Hero Card */}
+                {/* Floating Highlights Strip */}
                 <div 
-                  className="p-3.5 rounded-2xl shadow-sm flex flex-col gap-2 my-1"
+                  className="p-3 rounded-xl shadow-sm flex flex-col gap-1.5 my-1"
                   style={{ 
-                    backgroundColor: bgImage ? 'rgba(0,0,0,0.5)' : theme.cardBg, 
+                    backgroundColor: bgImage ? 'rgba(0,0,0,0.55)' : theme.cardBg, 
                     border: `1px solid ${bgImage ? 'rgba(255,255,255,0.2)' : theme.borderColor}`,
-                    backdropFilter: bgImage ? 'blur(8px)' : 'none'
+                    backdropFilter: bgImage ? 'blur(6px)' : 'none'
                   }}
                 >
-                  <div className="text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5" style={{ color: bgImage ? '#38BDF8' : theme.accent }}>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    核心认知与实操要点
-                  </div>
                   {(currentSlide.keyPoints || []).map((pt, idx) => (
                     <div 
                       key={idx} 
-                      className="p-2.5 rounded-lg text-xs font-medium leading-relaxed"
+                      className="p-2 rounded-lg text-xs font-medium leading-relaxed"
                       style={{ 
-                        backgroundColor: bgImage ? 'rgba(255,255,255,0.08)' : (selectedThemeId === 'oat' || selectedThemeId === 'healing' ? '#F8FAFC' : '#111827'),
-                        borderLeft: `3px solid ${bgImage ? '#38BDF8' : theme.accent}`
+                        backgroundColor: bgImage ? 'rgba(255,255,255,0.1)' : (selectedThemeId === 'oat' || selectedThemeId === 'healing' ? '#F8FAFC' : '#111827'),
+                        borderLeft: `3px solid ${bgImage ? '#FFE600' : theme.accent}`
                       }}
                     >
                       {pt}
@@ -626,40 +638,40 @@ export default function CardCanvasRenderer({
 
             {/* Archetype C: 左右/前后对比型 (Before vs After) */}
             {selectedLayoutId === 'C' && (
-              <div className="flex flex-col gap-3">
-                <h1 style={{ fontSize: '23px', lineHeight: '1.3', fontWeight: '800', textShadow: bgImage ? '0 2px 10px rgba(0,0,0,0.8)' : 'none' }}>
+              <div className="flex flex-col gap-2.5">
+                <h1 style={{ fontSize: '23px', lineHeight: '1.25', fontWeight: '800', textShadow: bgImage ? '0 2px 14px rgba(0,0,0,0.9)' : 'none' }}>
                   {renderHighlightedTitle(currentSlide.mainTitle, currentSlide.highlightKeywords)}
                 </h1>
 
-                <div className="grid grid-cols-1 gap-2.5 mt-1">
+                <div className="grid grid-cols-1 gap-2 mt-1">
                   <div 
-                    className="p-3 rounded-xl border"
+                    className="p-2.5 rounded-xl border"
                     style={{ 
-                      backgroundColor: bgImage ? 'rgba(69,10,10,0.7)' : (selectedThemeId === 'oat' ? '#FEF2F2' : '#450A0A'),
+                      backgroundColor: bgImage ? 'rgba(69,10,10,0.75)' : (selectedThemeId === 'oat' ? '#FEF2F2' : '#450A0A'),
                       borderColor: '#EF4444',
                       backdropFilter: bgImage ? 'blur(6px)' : 'none'
                     }}
                   >
-                    <div className="text-xs font-bold text-red-400 mb-1 flex items-center gap-1">
-                      ❌ 常见误区 (坏示范)
+                    <div className="text-xs font-bold text-red-400 mb-0.5 flex items-center gap-1">
+                      ❌ 坏示范：
                     </div>
-                    <div className="text-xs text-slate-200 font-medium">
+                    <div className="text-xs text-slate-100 font-medium">
                       {(currentSlide.keyPoints && currentSlide.keyPoints[0]) || '直接向 AI 索要现成答案，放弃思考'}
                     </div>
                   </div>
 
                   <div 
-                    className="p-3 rounded-xl border"
+                    className="p-2.5 rounded-xl border"
                     style={{ 
-                      backgroundColor: bgImage ? 'rgba(5,46,22,0.7)' : (selectedThemeId === 'oat' ? '#F0FDF4' : '#052E16'),
+                      backgroundColor: bgImage ? 'rgba(5,46,22,0.75)' : (selectedThemeId === 'oat' ? '#F0FDF4' : '#052E16'),
                       borderColor: '#10B981',
                       backdropFilter: bgImage ? 'blur(6px)' : 'none'
                     }}
                   >
-                    <div className="text-xs font-bold text-emerald-400 mb-1 flex items-center gap-1">
-                      ✅ 破局解法 (大厂高效法)
+                    <div className="text-xs font-bold text-emerald-400 mb-0.5 flex items-center gap-1">
+                      ✅ 好示范：
                     </div>
-                    <div className="text-xs text-slate-200 font-medium">
+                    <div className="text-xs text-slate-100 font-medium">
                       {(currentSlide.keyPoints && currentSlide.keyPoints[1]) || '启发式提问公式：角色 + 场景 + 引导反思'}
                     </div>
                   </div>
@@ -667,24 +679,24 @@ export default function CardCanvasRenderer({
               </div>
             )}
 
-            {/* Archetype D: 画中画悬浮浮岛型 */}
+            {/* Archetype D: 画中画悬浮型 */}
             {selectedLayoutId === 'D' && (
-              <div className="flex flex-col gap-3 text-center">
+              <div className="flex flex-col gap-2.5 text-center">
                 <div 
-                  className="p-4 rounded-2xl shadow-xl"
+                  className="p-3.5 rounded-2xl shadow-xl"
                   style={{
                     backgroundColor: bgImage ? 'rgba(0,0,0,0.6)' : theme.cardBg,
-                    border: `2px solid ${bgImage ? '#38BDF8' : theme.accent}`,
-                    backdropFilter: 'blur(16px)'
+                    border: `2px solid ${bgImage ? '#FFE600' : theme.accent}`,
+                    backdropFilter: 'blur(8px)'
                   }}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded" style={{ color: bgImage ? '#38BDF8' : theme.accent, backgroundColor: `${theme.accent}25` }}>
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded" style={{ color: bgImage ? '#FFE600' : theme.accent, backgroundColor: `${theme.accent}25` }}>
                     TOP PICK
                   </span>
-                  <h1 className="text-2xl font-black mt-2 leading-snug">
+                  <h1 className="text-2xl font-black mt-1.5 leading-snug">
                     {renderHighlightedTitle(currentSlide.mainTitle, currentSlide.highlightKeywords)}
                   </h1>
-                  <p className="text-xs mt-1.5 font-medium opacity-90">
+                  <p className="text-xs mt-1 font-medium opacity-95">
                     {currentSlide.subTitle}
                   </p>
                 </div>
@@ -693,9 +705,9 @@ export default function CardCanvasRenderer({
                   {(currentSlide.keyPoints || []).map((pt, idx) => (
                     <span 
                       key={idx}
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm"
+                      className="px-2.5 py-1 rounded-full text-xs font-semibold shadow-md"
                       style={{ 
-                        backgroundColor: bgImage ? 'rgba(0,0,0,0.6)' : `${theme.accent}15`, 
+                        backgroundColor: bgImage ? 'rgba(0,0,0,0.7)' : `${theme.accent}15`, 
                         color: bgImage ? '#FFFFFF' : theme.accent,
                         border: bgImage ? '1px solid rgba(255,255,255,0.2)' : 'none'
                       }}
@@ -709,28 +721,28 @@ export default function CardCanvasRenderer({
 
             {/* Archetype E: 序号索引清单型 */}
             {selectedLayoutId === 'E' && (
-              <div className="flex flex-col gap-2.5">
-                <h1 style={{ fontSize: '23px', fontWeight: '900', lineHeight: '1.3', textShadow: bgImage ? '0 2px 10px rgba(0,0,0,0.8)' : 'none' }}>
+              <div className="flex flex-col gap-2">
+                <h1 style={{ fontSize: '23px', fontWeight: '900', lineHeight: '1.25', textShadow: bgImage ? '0 2px 14px rgba(0,0,0,0.9)' : 'none' }}>
                   {renderHighlightedTitle(currentSlide.mainTitle, currentSlide.highlightKeywords)}
                 </h1>
-                <p className="text-xs font-medium opacity-90">
+                <p className="text-xs font-medium opacity-95">
                   📌 {currentSlide.subTitle}
                 </p>
 
-                <div className="flex flex-col gap-2 mt-1">
+                <div className="flex flex-col gap-1.5 mt-1">
                   {(currentSlide.keyPoints || []).map((pt, idx) => (
                     <div 
                       key={idx}
-                      className="p-2.5 rounded-xl flex items-center gap-2.5 text-xs font-semibold"
+                      className="p-2 rounded-xl flex items-center gap-2 text-xs font-semibold"
                       style={{ 
-                        backgroundColor: bgImage ? 'rgba(0,0,0,0.5)' : theme.cardBg, 
+                        backgroundColor: bgImage ? 'rgba(0,0,0,0.55)' : theme.cardBg, 
                         border: `1px solid ${bgImage ? 'rgba(255,255,255,0.2)' : theme.borderColor}`,
                         backdropFilter: bgImage ? 'blur(6px)' : 'none'
                       }}
                     >
                       <span 
                         className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-white shrink-0 text-[10px]"
-                        style={{ backgroundColor: bgImage ? '#38BDF8' : theme.accent }}
+                        style={{ backgroundColor: bgImage ? '#FFE600' : theme.accent, color: bgImage ? '#000000' : '#FFFFFF' }}
                       >
                         {idx + 1}
                       </span>
@@ -745,14 +757,14 @@ export default function CardCanvasRenderer({
 
           {/* Bottom Layer: Creator Identity & Xiaohongshu Safe Area Indicator */}
           <div 
-            className="relative z-10 pt-3 border-t flex items-center justify-between text-[11px]" 
+            className="relative z-10 pt-2.5 border-t flex items-center justify-between text-[11px]" 
             style={{ 
-              color: bgImage ? 'rgba(255,255,255,0.8)' : theme.textSub,
+              color: bgImage ? 'rgba(255,255,255,0.85)' : theme.textSub,
               borderColor: bgImage ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'
             }}
           >
             <div className="flex items-center gap-1.5 font-bold">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: bgImage ? '#38BDF8' : theme.accent }} />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: bgImage ? '#FFE600' : theme.accent }} />
               <span>{authorName} · 私人创作大脑</span>
             </div>
             <div className="text-[10px] font-mono opacity-75">
