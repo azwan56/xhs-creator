@@ -45,7 +45,7 @@ export default function App() {
 
   // Volcano Engine API credentials
   const [apiKey, setApiKey] = useState(savedState?.apiKey || import.meta.env.VITE_VOLC_API_KEY || '');
-  const [endpointId, setEndpointId] = useState(savedState?.endpointId || '');
+  const [endpointId, setEndpointId] = useState(savedState?.endpointId || import.meta.env.VITE_DOUBAO_ENDPOINT_ID || 'ep-20260816110807-jd2jx');
   const [modelName, setModelName] = useState(savedState?.modelName || 'Doubao-pro-32k');
 
   // Creation Studio active generated package
